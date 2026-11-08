@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>yka — requisição de arquivos</title>
+  
+  <!-- Fontes -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['Space Mono', 'monospace'],
+          },
+          colors: {
+            dark: {
+              950: '#090a0d',
+              900: '#0d0f12',
+              800: '#13151b',
+              700: '#181b22',
+              600: '#212530',
+              500: '#2a2e38',
+              400: '#3c4250',
+              300: '#5a6273'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Firebase SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, setDoc, doc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD6GUNHt9KLXWo49Jv2SbZNce7VNjCpFhk",
+      authDomain: "yka-app-f9c65.firebaseapp.com",
+      projectId: "yka-app-f9c65",
+      storageBucket: "yka-app-f9c65.firebasestorage.app",
+      messagingSenderId: "875035308131",
+      appId: "1:875035308131:web:3dc4faaa2a9c14f7560856"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    window.db = db;
+    window.firebaseFns = { collection, getDocs, setDoc, doc, deleteDoc, onSnapshot };
+    
+    window.dispatchEvent(new Event('firebase-ready'));
+  </script>
+
+  <style>
+    :root {
+      --bg: #0d0f12;
+      --panel: #13151b;
+      --line: #2a2e38;
+      --text: #e9edf6;
+    }
+
+    * { box-sizing: border-box; }
+    
+    body {
+      margin: 0;
+      color: var(--text);
+      font-family: 'Inter', system-ui, sans-serif;
+      background: linear-gradient(180deg, #181b22 0%, #111318 38%, #0d0f12 100%);
+      background-attachment: fixed;
+      min-height: 100vh;
+      user-select: none;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.15;
+      background-image: linear-gradient(#5a627320 1px, transparent 1px), linear-gradient(90deg, #5a627320 1px, transparent 1px);
+      background-size: 36px 36px;
+      z-index: 0;
+    }
+
+    @keyframes rgb {
+      to { background-position: 300% 0; }
+    }
+    .hero-title-rgb {
+      background: linear-gradient(90deg, #ff4c9b, #9b5cff, #3f9bff, #31e5cf, #ffe66d, #ff4c9b);
+      background-size: 300% 100%;
+      color: transparent;
+      -webkit-background-clip: text;
+      background-clip: text;
+      animation: rgb 8s linear infinite;
+    }
+
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes modalZoomIn {
+      from { opacity: 0; transform: scale(0.95) translateY(10px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    @keyframes cardPopIn {
+      from { opacity: 0; transform: scale(0.92) translateY(15px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .animate-header { animation: fadeInDown 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .animate-hero { animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards; opacity: 0; }
+    .animate-search { animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards; opacity: 0; }
+    .animate-grid { animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards; opacity: 0; }
+
+    .modal-animated {
+      animation: modalZoomIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .new-card-anim {
+      animation: cardPopIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .btn-action-dark {
+      background-color: #212530 !important;
+      color: #ffffff !important;
+      font-weight: 700;
+      border: 1px solid #3c4250;
+      transition: filter 0.15s ease, border-color 0.15s ease;
+    }
+    .btn-action-dark:hover {
+      filter: brightness(0.85);
+      border-color: #5a6273;
+    }
+    .btn-action-dark:active {
+      filter: brightness(1.15);
+    }
+
+    .input-custom {
+      background-color: #0d0f12;
+      border: 1px solid #3c4250;
+      color: #ffffff;
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .input-custom:focus {
+      border-color: #5a6273 !important;
+    }
+
+    .selectable, input, textarea, code, pre, p, h1, h2, h3 {
+      user-select: text;
+    }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0d0f12; }
+    ::-webkit-scrollbar-thumb { background: #2a2e38; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #5a6273; }
+  </style>
+</head>
+<body class="relative min-h-screen text-slate-100 pb-24">
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8">
+
+    <!-- CABEÇALHO SUPERIOR -->
+    <header class="animate-header flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 sm:mb-10 pb-4 border-b border-dark-500/60">
+      <div class="font-mono text-xs font-bold text-slate-300 bg-dark-700 border border-dark-400 px-3 py-2 rounded-md shadow-sm">
+        yka / arquivo de arquivos
+      </div>
+
+      <div id="user-status-container" class="w-full sm:w-auto flex items-center justify-end gap-3">
+        <!-- Renderizado dinamicamente -->
+      </div>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section class="animate-hero max-w-3xl mb-8 sm:mb-10">
+      <h1 class="text-6xl sm:text-8xl md:text-9xl font-black tracking-tighter leading-none hero-title-rgb mb-2 lowercase">
+        yka
+      </h1>
+      <p class="font-mono text-xs sm:text-sm text-slate-400 tracking-wide">
+        requisição de arquivos
+      </p>
+      <div class="flex flex-wrap items-center gap-4 sm:gap-5 mt-4 font-mono text-xs text-slate-400">
+        <span class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]"></span>
+          <b id="stat-posts-count" class="text-white font-bold">0</b> publicações
+        </span>
+        <span class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.5)]"></span>
+          nuvem ativa (firebase)
+        </span>
+      </div>
+    </section>
+
+    <!-- BARRA DE PESQUISA & FILTROS -->
+    <section class="animate-search space-y-4 mb-8">
+      <div class="flex items-center bg-dark-900 border border-dark-400 rounded-xl px-3.5 py-3 shadow-md focus-within:border-[#5a6273] transition">
+        <svg class="w-4 h-4 sm:w-5 sm:h-5 text-slate-400 shrink-0 mr-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="7" stroke-width="2"/>
+          <path d="m20 20-4-4" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <input 
+          id="search-input" 
+          type="text" 
+          placeholder="pesquisar por título, descrição..." 
+          class="w-full bg-transparent text-white font-mono text-xs sm:text-sm placeholder:text-slate-500 border-none outline-none focus:outline-none focus:ring-0"
+          autocomplete="off"
+        >
+      </div>
+
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="flex flex-wrap gap-1.5 sm:gap-2" id="filter-chips">
+          <button data-filter="all" class="chip-btn active text-[11px] sm:text-xs font-mono px-3 py-1.5 rounded-full border border-dark-400 bg-dark-600 text-white font-bold">tudo</button>
+          <button data-filter="text" class="chip-btn text-[11px] sm:text-xs font-mono px-3 py-1.5 rounded-full border border-dark-400 bg-dark-800 text-slate-400 hover:text-white">código / texto</button>
+          <button data-filter="file" class="chip-btn text-[11px] sm:text-xs font-mono px-3 py-1.5 rounded-full border border-dark-400 bg-dark-800 text-slate-400 hover:text-white">arquivo</button>
+          <button data-filter="both" class="chip-btn text-[11px] sm:text-xs font-mono px-3 py-1.5 rounded-full border border-dark-400 bg-dark-800 text-slate-400 hover:text-white">texto + arquivo</button>
+        </div>
+
+        <div class="flex items-center justify-between sm:justify-end gap-2 font-mono text-xs text-slate-400">
+          <span>ordenar:</span>
+          <select id="sort-select" class="bg-dark-900 border border-dark-400 text-white rounded px-2.5 py-1 text-xs outline-none cursor-pointer focus:border-[#5a6273]">
+            <option value="new">recentes</option>
+            <option value="votes">mais votados</option>
+            <option value="old">antigos</option>
+            <option value="az">A–Z</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <div class="animate-grid flex items-center justify-between font-mono text-xs text-slate-400 mb-4 pb-2 border-b border-dark-500">
+      <span id="items-count-label">0 itens encontrados</span>
+    </div>
+
+    <!-- GRID DE CARDS COMPACTOS -->
+    <main id="posts-grid" class="animate-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
+      <!-- Inserido dinamicamente -->
+    </main>
+  </div>
+
+  <!-- BOTAO FLUTUANTE DE ANEXAR -->
+  <button id="btn-open-create" class="fixed left-4 bottom-4 sm:left-6 sm:bottom-6 z-30 btn-action-dark px-4 py-3 sm:px-5 sm:py-3.5 rounded-xl shadow-2xl flex items-center gap-2 font-mono text-xs sm:text-sm">
+    <svg class="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M5 12h14"/>
+    </svg>
+    <span>Anexar</span>
+  </button>
+
+  <!-- MODAL: ANEXAR / PUBLICAR -->
+  <div id="modal-create" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="modal-animated bg-dark-700 border border-dark-400 rounded-2xl w-full max-w-xl p-5 sm:p-6 shadow-2xl relative my-auto max-h-[92vh] overflow-y-auto">
+      <button class="modal-close font-mono text-slate-400 hover:text-white absolute right-3 top-3 sm:right-4 sm:top-4 bg-dark-600 border border-dark-400 w-8 h-8 rounded-lg flex items-center justify-center z-10">✕</button>
+      
+      <h2 class="text-xl sm:text-2xl font-bold text-white mb-1">publicar no <span class="text-white">yka</span></h2>
+      <p class="font-mono text-xs text-slate-400 mb-5">anexar arquivos ou textos</p>
+      
+      <form id="form-publish" class="space-y-4">
+        <div>
+          <label class="block font-mono text-[10px] sm:text-[11px] text-slate-300 uppercase tracking-wider mb-1">TÍTULO <span class="text-pink-500">*</span></label>
+          <input type="text" id="post-title" required maxlength="100" placeholder="ex. Meu arquivo / Script útil" class="w-full p-2.5 sm:p-3 text-xs sm:text-sm input-custom">
+        </div>
+
+        <div>
+          <label class="block font-mono text-[10px] sm:text-[11px] text-slate-300 uppercase tracking-wider mb-1">DESCRIÇÃO</label>
+          <textarea id="post-desc" rows="2" maxlength="500" placeholder="o que é essa publicação?" class="w-full p-2.5 sm:p-3 text-xs sm:text-sm input-custom resize-none"></textarea>
+        </div>
+
+        <div>
+          <label class="block font-mono text-[10px] sm:text-[11px] text-slate-300 uppercase tracking-wider mb-1">TEXTO / CONTEÚDO</label>
+          <textarea id="post-content" rows="4" placeholder="cole um texto, código..." class="w-full p-2.5 sm:p-3 text-xs font-mono text-white input-custom"></textarea>
+        </div>
+
+        <div>
+          <label class="block font-mono text-[10px] sm:text-[11px] text-slate-300 uppercase tracking-wider mb-1">IMAGEM DE CAPA (THUMBNAIL)</label>
+          <label for="post-thumb-file" class="flex items-center gap-3 bg-dark-900 border border-dark-400 rounded-lg p-2.5 cursor-pointer hover:border-dark-300 transition">
+            <span class="btn-action-dark font-mono text-xs px-3 py-1.5 rounded shrink-0 pointer-events-none">Escolher imagem</span>
+            <span id="thumb-filename-label" class="font-mono text-xs text-slate-400 truncate">nenhum arquivo escolhido</span>
+            <input type="file" id="post-thumb-file" accept="image/*" class="hidden">
+          </label>
+          <div id="thumb-preview-box" class="mt-2 hidden">
+            <img id="thumb-preview-img" src="" class="h-20 w-full object-cover rounded border border-dark-400">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-mono text-[10px] sm:text-[11px] text-slate-300 uppercase tracking-wider mb-1">ANEXAR ARQUIVO</label>
+          <label for="post-attachment-file" class="flex items-center gap-3 bg-dark-900 border border-dark-400 rounded-lg p-2.5 cursor-pointer hover:border-dark-300 transition">
+            <span class="btn-action-dark font-mono text-xs px-3 py-1.5 rounded shrink-0 pointer-events-none">Escolher arquivo</span>
+            <span id="attachment-name-label" class="font-mono text-xs text-slate-400 truncate">nenhum arquivo escolhido</span>
+            <input type="file" id="post-attachment-file" class="hidden">
+          </label>
+        </div>
+
+        <button type="submit" id="btn-submit-publish" class="w-full py-3 rounded-xl font-mono text-xs sm:text-sm btn-action-dark mt-2">
+          Anexar
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: VISUALIZAR PUBLICAÇÃO -->
+  <div id="modal-view" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="modal-animated bg-dark-900 border border-dark-400 rounded-2xl w-full max-w-2xl p-5 sm:p-6 shadow-2xl relative my-auto max-h-[92vh] flex flex-col">
+      <button class="modal-close font-mono text-slate-400 hover:text-white absolute right-4 top-4 bg-dark-600/90 hover:bg-dark-500 border border-dark-400 w-8 h-8 rounded-lg flex items-center justify-center z-30 shadow-md">✕</button>
+      
+      <div id="view-post-content" class="overflow-y-auto pr-1 space-y-4 pt-2">
+        <!-- Inserido dinamicamente -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: PERFIL DO USUÁRIO -->
+  <div id="modal-profile" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="modal-animated bg-dark-900 border border-dark-400 rounded-2xl w-full max-w-2xl p-5 sm:p-6 shadow-2xl relative my-auto max-h-[92vh] flex flex-col">
+      <button class="modal-close font-mono text-slate-400 hover:text-white absolute right-4 top-4 bg-dark-600/90 hover:bg-dark-500 border border-dark-400 w-8 h-8 rounded-lg flex items-center justify-center z-30 shadow-md">✕</button>
+
+      <div id="profile-modal-content" class="overflow-y-auto space-y-5 pr-1">
+        <!-- Renderizado dinamicamente -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: AUTENTICAÇÃO -->
+  <div id="modal-auth" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4">
+    <div class="modal-animated bg-dark-700 border border-dark-400 rounded-2xl w-full max-w-md p-5 sm:p-7 shadow-2xl relative">
+      <button class="modal-close font-mono text-slate-400 hover:text-white absolute right-3 top-3 sm:right-4 sm:top-4 bg-dark-600 border border-dark-400 w-8 h-8 rounded-lg flex items-center justify-center z-10">✕</button>
+
+      <div class="flex border-b border-dark-500 mb-5">
+        <button id="tab-login-btn" class="flex-1 pb-2.5 font-mono text-xs font-bold uppercase tracking-wider text-white border-b-2 border-white">
+          ENTRAR
+        </button>
+        <button id="tab-register-btn" class="flex-1 pb-2.5 font-mono text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-slate-200 border-b-2 border-transparent">
+          CRIAR CONTA
+        </button>
+      </div>
+
+      <!-- FORM LOGIN -->
+      <form id="form-login" class="space-y-3.5">
+        <div>
+          <label class="block font-mono text-[10px] text-slate-400 uppercase mb-1">E-MAIL</label>
+          <input type="email" id="login-email" required class="w-full p-2.5 sm:p-3 text-xs sm:text-sm input-custom">
+        </div>
+        <div>
+          <label class="block font-mono text-[10px] text-slate-400 uppercase mb-1">SENHA</label>
+          <input type="password" id="login-password" required class="w-full p-2.5 sm:p-3 text-xs sm:text-sm input-custom">
+        </div>
+        <button type="submit" class="w-full py-2.5 sm:py-3 rounded-xl font-mono text-xs btn-action-dark">
+          ENTRAR NA CONTA
+        </button>
+        <button type="button" id="btn-guest-login" class="w-full py-2.5 rounded-xl font-mono text-xs text-slate-300 border border-dark-400 hover:bg-dark-600">
+          CONTINUAR COMO VISITANTE
+        </button>
+      </form>
+
+      <!-- FORM REGISTRO -->
+      <form id="form-register" class="space-y-3.5 hidden">
+        <div>
+          <label class="block font-mono text-[10px] text-slate-400 uppercase mb-1">NOME DE USUÁRIO</label>
+          <input type="text" id="reg-name" required placeholder="seu nome ou apelido" class="w-full p-2.5 sm:p-3 text-xs sm:text-sm input-custom">
+        </div>
+        <div>
+          <label class="block font-mono text-[10px] text-slate-400 uppercase mb-1">E-MAIL</label>
+          <input type="email" id="reg-email" required placeholder="seu@email.com" class="w-full p-2.5 sm:p-3 text-xs sm:text-sm input-custom">
+        </div>
+        <div>
+          <label class="block font-mono text-[10px] text-slate-400 uppercase mb-1">SENHA</label>
+          <input type="password" id="reg-password" minlength="4" required class="w-full p-2.5 sm:p-3 text-xs sm:text-sm input-custom">
+        </div>
+        <button type="submit" class="w-full py-2.5 sm:py-3 rounded-xl font-mono text-xs btn-action-dark">
+          CRIAR CONTA
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast-container" class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 space-y-2 pointer-events-none max-w-[90vw]"></div>
+
+  <!-- SCRIPT COMPLETO DE FUNCIONAMENTO -->
+  <script>
+    let currentUser = JSON.parse(localStorage.getItem('rda_current_user') || 'null');
+    let posts = [];
+    let currentFilter = 'all';
+    let currentSort = 'new';
+    let searchQuery = '';
+    
+    let selectedThumbBase64 = null;
+    let selectedFileBase64 = null;
+    let selectedFileName = '';
+    let selectedFileSize = 0;
+    let activeViewPostId = null;
+
+    function initFirebaseSync() {
+      const { collection, onSnapshot } = window.firebaseFns;
+      
+      onSnapshot(collection(window.db, 'posts'), (snapshot) => {
+        posts = [];
+        snapshot.forEach((doc) => {
+          posts.push({ id: doc.id, ...doc.data() });
+        });
+        renderPosts();
+        if (activeViewPostId) {
+          const currentPost = posts.find(p => p.id === activeViewPostId);
+          if (currentPost) renderViewPostModal(currentPost);
+        }
+      });
+    }
+
+    async function getDBUsers() {
+      const { collection, getDocs } = window.firebaseFns;
+      try {
+        const snapshot = await getDocs(collection(window.db, 'users'));
+        let list = [];
+        snapshot.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
+        return list;
+      } catch (e) {
+        return [];
+      }
+    }
+
+    async function saveDBUser(user) {
+      const { doc, setDoc } = window.firebaseFns;
+      try {
+        await setDoc(doc(window.db, 'users', user.id), user);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    async function saveDBPost(post) {
+      const { doc, setDoc } = window.firebaseFns;
+      try {
+        await setDoc(doc(window.db, 'posts', post.id), post);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    async function deleteDBPost(id) {
+      const { doc, deleteDoc } = window.firebaseFns;
+      try {
+        await deleteDoc(doc(window.db, 'posts', id));
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function showToast(msg) {
+      const formatted = msg.toLowerCase().replace(/[.!?]/g, '');
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'pointer-events-auto bg-dark-700 border border-dark-400 text-white font-mono text-xs px-3.5 py-2.5 rounded-lg shadow-2xl transition duration-300 opacity-0 transform translate-y-2';
+      toast.textContent = formatted;
+      container.appendChild(toast);
+      
+      setTimeout(() => toast.classList.remove('opacity-0', 'translate-y-2'), 10);
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 2600);
+    }
+
+    function formatSize(bytes) {
+      if (!bytes) return '0 B';
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / 1048576).toFixed(1) + ' MB';
+    }
+
+    function formatDate(ts) {
+      if (!ts) return '';
+      const d = new Date(ts);
+      return d.toLocaleDateString('pt-BR');
+    }
+
+    function escapeHTML(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[c]));
+    }
+
+    function fileToBase64(file) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function updateAuthUI() {
+      const container = document.getElementById('user-status-container');
+      if (!currentUser) {
+        container.innerHTML = `
+          <button id="btn-open-auth" class="font-mono text-xs btn-action-dark px-3.5 py-2 rounded-lg w-full sm:w-auto">
+            entrar / registrar
+          </button>
+        `;
+        document.getElementById('btn-open-auth').onclick = () => openAuthModal('login');
+      } else {
+        const name = currentUser.name || 'visitante';
+        const avatar = currentUser.avatarUrl 
+          ? `<img src="${escapeHTML(currentUser.avatarUrl)}" class="w-5 h-5 rounded-full object-cover border border-dark-400 shrink-0">` 
+          : `<div class="w-5 h-5 rounded-full bg-dark-600 text-white font-mono text-[9px] font-bold flex items-center justify-center border border-dark-400 shrink-0">${name.charAt(0).toUpperCase()}</div>`;
+        container.innerHTML = `
+          <div class="flex items-center justify-between sm:justify-start gap-2 bg-dark-900 border border-dark-400 pl-3 pr-2 py-1.5 rounded-lg w-full sm:w-auto">
+            <button id="btn-my-profile" class="flex items-center gap-2 hover:opacity-80 transition">
+              ${avatar}
+              <span class="font-mono text-xs text-white font-bold truncate max-w-[120px]">${escapeHTML(name)}</span>
+            </button>
+            <button id="btn-logout" class="font-mono text-xs text-slate-400 hover:text-white px-1">✕</button>
+          </div>
+        `;
+        document.getElementById('btn-my-profile').onclick = () => openProfileModal(currentUser.id);
+        document.getElementById('btn-logout').onclick = () => {
+          currentUser = null;
+          localStorage.removeItem('rda_current_user');
+          updateAuthUI();
+          showToast('você saiu da sessão');
+        };
+      }
+    }
+
+    function openAuthModal(tab) {
+      document.getElementById('modal-auth').classList.remove('hidden');
+      document.getElementById('modal-auth').classList.add('flex');
+      switchAuthTab(tab);
+    }
+
+    function switchAuthTab(tab) {
+      const formLogin = document.getElementById('form-login');
+      const formReg = document.getElementById('form-register');
+      const btnLogin = document.getElementById('tab-login-btn');
+      const btnReg = document.getElementById('tab-register-btn');
+
+      if (tab === 'login') {
+        formLogin.classList.remove('hidden');
+        formReg.classList.add('hidden');
+        btnLogin.className = "flex-1 pb-2.5 font-mono text-xs font-bold uppercase tracking-wider text-white border-b-2 border-white";
+        btnReg.className = "flex-1 pb-2.5 font-mono text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-slate-200 border-b-2 border-transparent";
+      } else {
+        formLogin.classList.add('hidden');
+        formReg.classList.remove('hidden');
+        btnReg.className = "flex-1 pb-2.5 font-mono text-xs font-bold uppercase tracking-wider text-white border-b-2 border-white";
+        btnLogin.className = "flex-1 pb-2.5 font-mono text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-slate-200 border-b-2 border-transparent";
+      }
+    }
+
+    function closeModals() {
+      document.querySelectorAll('#modal-create, #modal-view, #modal-auth, #modal-profile').forEach(m => {
+        m.classList.add('hidden');
+        m.classList.remove('flex');
+      });
+    }
+
+    function getFilteredPosts() {
+      let res = [...posts];
+
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        res = res.filter(p => 
+          (p.title && p.title.toLowerCase().includes(q)) ||
+          (p.description && p.description.toLowerCase().includes(q)) ||
+          (p.content && p.content.toLowerCase().includes(q)) ||
+          (p.authorName && p.authorName.toLowerCase().includes(q)) ||
+          (p.fileName && p.fileName.toLowerCase().includes(q))
+        );
+      }
+
+      if (currentFilter !== 'all') {
+        res = res.filter(p => {
+          const hasText = !!p.content;
+          const hasFile = !!p.fileName;
+          if (currentFilter === 'text') return hasText && !hasFile;
+          if (currentFilter === 'file') return hasFile && !hasText;
+          if (currentFilter === 'both') return hasText && hasFile;
+          return true;
+        });
+      }
+
+      res.sort((a, b) => {
+        if (currentSort === 'new') return b.createdAt - a.createdAt;
+        if (currentSort === 'old') return a.createdAt - b.createdAt;
+        if (currentSort === 'az') return a.title.localeCompare(b.title);
+        if (currentSort === 'votes') {
+          const scoreA = Object.values(a.votes || {}).reduce((acc, v) => acc + v, 0);
+          const scoreB = Object.values(b.votes || {}).reduce((acc, v) => acc + v, 0);
+          return scoreB - scoreA;
+        }
+        return 0;
+      });
+
+      return res;
+    }
+
+    function renderPosts(newPostId = null) {
+      const grid = document.getElementById('posts-grid');
+      const filtered = getFilteredPosts();
+
+      document.getElementById('stat-posts-count').textContent = posts.length;
+      document.getElementById('items-count-label').textContent = `${filtered.length} ${filtered.length === 1 ? 'item encontrado' : 'itens encontrados'}`;
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full text-center py-12 bg-dark-900 border border-dark-400 rounded-xl font-mono text-xs text-slate-400">
+            ${posts.length ? 'nenhum resultado para essa pesquisa' : 'ainda não há publicações — clique em Anexar para começar.'}
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(p => {
+        const votesObj = p.votes || {};
+        const score = Object.values(votesObj).reduce((acc, v) => acc + v, 0);
+        const myVote = currentUser ? (votesObj[currentUser.id] || 0) : 0;
+        const typeTag = (p.content && p.fileName) ? 'TEXTO + ARQUIVO' : p.fileName ? 'ARQUIVO' : 'TEXTO';
+        const commentsCount = (p.comments || []).length;
+        const isNew = p.id === newPostId ? 'new-card-anim' : '';
+
+        const authorAvatar = p.authorAvatar 
+          ? `<img src="${escapeHTML(p.authorAvatar)}" class="w-4 h-4 rounded-full object-cover border border-dark-400 shrink-0">` 
+          : `<div class="w-4 h-4 rounded-full bg-dark-600 text-white font-mono text-[8px] font-bold flex items-center justify-center border border-dark-400 shrink-0">${(p.authorName || 'V').charAt(0).toUpperCase()}</div>`;
+
+        return `
+          <article class="${isNew} bg-dark-900 border border-dark-400 rounded-lg overflow-hidden shadow-md hover:border-dark-300 transition duration-200 flex flex-col cursor-pointer btn-view-post" data-id="${p.id}">
+            
+            <div class="h-32 bg-dark-950 border-b border-dark-500/80 relative flex items-center justify-center overflow-hidden">
+              ${p.thumbUrl ? `
+                <img src="${escapeHTML(p.thumbUrl)}" class="w-full h-full object-cover">
+              ` : `
+                <svg class="w-9 h-9 text-slate-700 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M14 2v6h6M8 13h8M8 17h8"/>
+                </svg>
+              `}
+            </div>
+
+            <div class="p-3 flex-1 flex flex-col justify-between space-y-2">
+              <div>
+                <div class="flex items-start justify-between gap-2">
+                  <h3 class="font-bold text-xs sm:text-sm text-white line-clamp-1 leading-tight">
+                    ${escapeHTML(p.title)}
+                  </h3>
+                  <span class="font-mono text-[8px] px-1.5 py-0.5 rounded border border-dark-400 bg-dark-800 text-slate-300 font-bold shrink-0">
+                    ${typeTag}
+                  </span>
+                </div>
+
+                ${p.content ? `
+                  <div class="mt-2 bg-dark-950 border border-dark-500/60 rounded px-2 py-1.5 font-mono text-[10px] text-slate-300 line-clamp-2 overflow-hidden select-none">
+                    ${escapeHTML(p.content)}
+                  </div>
+                ` : ''}
+
+                ${p.description ? `
+                  <p class="text-[11px] text-slate-400 mt-1.5 line-clamp-1 leading-normal">
+                    ${escapeHTML(p.description)}
+                  </p>
+                ` : ''}
+
+                ${p.fileName ? `
+                  <div class="mt-1.5 flex items-center gap-1.5 font-mono text-[10px] text-slate-300 bg-dark-800/80 p-1.5 rounded border border-dark-500">
+                    <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    </svg>
+                    <span class="truncate flex-1">${escapeHTML(p.fileName)}</span>
+                    <span class="text-slate-500">${formatSize(p.fileSize)}</span>
+                  </div>
+                ` : ''}
+              </div>
+
+              <div class="pt-2 border-t border-dark-500/60 flex items-center justify-between font-mono text-[11px] text-slate-400">
+                <div class="flex items-center gap-2.5">
+                  <div class="flex items-center gap-1">
+                    <button data-id="${p.id}" data-vote="1" class="btn-vote p-0.5 hover:text-white ${myVote === 1 ? 'text-white' : ''}">
+                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"/></svg>
+                    </button>
+                    <span class="text-[11px] font-normal text-slate-300">${score}</span>
+                    <button data-id="${p.id}" data-vote="-1" class="btn-vote p-0.5 hover:text-white ${myVote === -1 ? 'text-white' : ''}">
+                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                  </div>
+
+                  <div class="flex items-center gap-1 text-slate-400">
+                    <svg class="w-3 h-3 stroke-[1.8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                    </svg>
+                    <span class="font-normal">${commentsCount}</span>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-1.5 text-slate-300 btn-profile-trigger" data-authorid="${p.authorId}">
+                  ${authorAvatar}
+                  <span class="font-normal text-slate-200 truncate max-w-[90px]">${escapeHTML(p.authorName || 'visitante')}</span>
+                </div>
+              </div>
+
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      document.querySelectorAll('.btn-view-post').forEach(b => {
+        b.onclick = (e) => {
+          if (e.target.closest('.btn-vote') || e.target.closest('.btn-profile-trigger')) return;
+          const post = posts.find(x => x.id === b.dataset.id);
+          if (post) openViewPostModal(post);
+        };
+      });
+
+      document.querySelectorAll('.btn-profile-trigger').forEach(b => {
+        b.onclick = (e) => {
+          e.stopPropagation();
+          const authorId = b.dataset.authorid;
+          if (authorId) openProfileModal(authorId);
+        };
+      });
+
+      document.querySelectorAll('.btn-vote').forEach(b => {
+        b.onclick = (e) => {
+          e.stopPropagation();
+          handleVote(b.dataset.id, parseInt(b.dataset.vote));
+        };
+      });
+    }
+
+    async function handleVote(postId, val) {
+      if (!currentUser) {
+        currentUser = { id: 'guest_' + Math.random().toString(36).substring(2, 9), name: 'visitante', isGuest: true };
+        localStorage.setItem('rda_current_user', JSON.stringify(currentUser));
+        updateAuthUI();
+      }
+
+      const post = posts.find(p => p.id === postId);
+      if (!post) return;
+
+      if (!post.votes) post.votes = {};
+      const current = post.votes[currentUser.id] || 0;
+
+      if (current === val) {
+        delete post.votes[currentUser.id];
+      } else {
+        post.votes[currentUser.id] = val;
+      }
+
+      await saveDBPost(post);
+      renderPosts();
+      if (activeViewPostId === postId) renderViewPostModal(post);
+    }
+
+    function openViewPostModal(post) {
+      activeViewPostId = post.id;
+      renderViewPostModal(post);
+      const modal = document.getElementById('modal-view');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function renderViewPostModal(post) {
+      const container = document.getElementById('view-post-content');
+      const isOwner = currentUser && (currentUser.id === post.authorId);
+      const comments = post.comments || [];
+      const votesObj = post.votes || {};
+      const score = Object.values(votesObj).reduce((acc, v) => acc + v, 0);
+      const myVote = currentUser ? (votesObj[currentUser.id] || 0) : 0;
+      const typeTag = (post.content && post.fileName) ? 'TEXTO + ARQUIVO' : post.fileName ? 'ARQUIVO' : 'TEXTO';
+
+      const authorAvatar = post.authorAvatar 
+        ? `<img src="${escapeHTML(post.authorAvatar)}" class="w-5 h-5 rounded-full object-cover border border-dark-400 shrink-0">` 
+        : `<div class="w-5 h-5 rounded-full bg-dark-600 text-white font-mono text-[9px] font-bold flex items-center justify-center border border-dark-400 shrink-0">${(post.authorName || 'V').charAt(0).toUpperCase()}</div>`;
+
+      container.innerHTML = `
+        ${post.thumbUrl ? `
+          <div class="rounded-xl overflow-hidden border border-dark-500/80 bg-black max-h-72 flex items-center justify-center relative mb-2">
+            <img src="${escapeHTML(post.thumbUrl)}" class="w-full h-full object-contain mx-auto">
+          </div>
+        ` : ''}
+
+        <div class="flex items-start justify-between gap-4 pr-12">
+          <h2 class="text-xl sm:text-2xl font-bold text-white tracking-tight">${escapeHTML(post.title)}</h2>
+          <span class="font-mono text-[10px] px-2.5 py-1 rounded border border-dark-400 bg-dark-800 text-slate-300 font-bold shrink-0">
+            ${typeTag}
+          </span>
+        </div>
+
+        ${post.content ? `
+          <div class="relative bg-dark-950 border border-dark-500/80 rounded-lg p-3 font-mono text-xs text-slate-200 flex items-center justify-between gap-3">
+            <code class="overflow-x-auto select-all flex-1 py-1">${escapeHTML(post.content)}</code>
+            <button id="btn-copy-code" class="btn-action-dark font-mono text-xs px-3 py-1.5 rounded shrink-0">Copiar</button>
+          </div>
+        ` : ''}
+
+        <div class="flex items-center justify-between font-mono text-xs text-slate-400">
+          <div class="flex items-center gap-2 cursor-pointer border-b border-transparent hover:border-slate-400" id="btn-author-profile">
+            ${authorAvatar}
+            <span>por <b class="text-slate-200">${escapeHTML(post.authorName || 'visitante')}</b> · ${formatDate(post.createdAt)}</span>
+          </div>
+          ${isOwner ? `<button id="btn-delete-post" class="text-red-400 hover:underline">excluir</button>` : ''}
+        </div>
+
+        ${post.description ? `
+          <p class="text-xs sm:text-sm text-slate-300 selectable pt-1">${escapeHTML(post.description)}</p>
+        ` : ''}
+
+        ${post.fileData ? `
+          <div class="bg-dark-800 border border-dark-500 rounded-xl p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div class="truncate w-full sm:w-auto">
+              <h5 class="font-mono text-xs font-bold text-white truncate">${escapeHTML(post.fileName)}</h5>
+              <span class="font-mono text-[11px] text-slate-400">${formatSize(post.fileSize)}</span>
+            </div>
+            <button id="btn-download-file" class="btn-action-dark font-mono text-xs px-4 py-2 rounded-lg w-full sm:w-auto text-center">
+              baixar
+            </button>
+          </div>
+        ` : ''}
+
+        <div class="border-t border-dark-500/80 my-2"></div>
+
+        <div class="flex items-center gap-3 font-mono text-xs">
+          <button data-id="${post.id}" data-vote="1" class="btn-vote-modal bg-dark-800 hover:bg-dark-700 border border-dark-500 px-3 py-1.5 rounded-lg text-slate-200 flex items-center gap-1.5 ${myVote === 1 ? 'border-emerald-400 text-emerald-400 font-bold' : ''}">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"/></svg>
+            Votar a favor
+          </button>
+          
+          <span class="text-xs font-normal text-slate-300 font-mono">${score}</span>
+
+          <button data-id="${post.id}" data-vote="-1" class="btn-vote-modal bg-dark-800 hover:bg-dark-700 border border-dark-500 px-3 py-1.5 rounded-lg text-slate-200 flex items-center gap-1.5 ${myVote === -1 ? 'border-red-400 text-red-400 font-bold' : ''}">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+            Votar contra
+          </button>
+        </div>
+
+        <div class="space-y-3 pt-3">
+          <h3 class="font-mono text-xs font-bold text-white uppercase tracking-wider">Comentários (${comments.length})</h3>
+
+          <form id="form-comment" class="flex flex-row items-center gap-2">
+            <input type="text" id="comment-input" required placeholder="adicionar um comentário..." class="flex-1 p-2.5 text-xs input-custom">
+            <button type="submit" class="btn-action-dark font-mono text-xs py-2.5 px-5 rounded-lg shrink-0">
+              Postar
+            </button>
+          </form>
+
+          <div class="space-y-2 max-h-52 overflow-y-auto pr-1 pt-1">
+            ${comments.map((c, i) => {
+              const commAvatar = c.authorAvatar 
+                ? `<img src="${escapeHTML(c.authorAvatar)}" class="w-4 h-4 rounded-full object-cover border border-dark-400 shrink-0">` 
+                : `<div class="w-4 h-4 rounded-full bg-dark-600 text-white font-mono text-[8px] font-bold flex items-center justify-center border border-dark-400 shrink-0">${(c.authorName || 'V').charAt(0).toUpperCase()}</div>`;
+
+              return `
+                <div class="bg-dark-800/80 border border-dark-500/70 rounded-lg p-2.5 text-xs space-y-1.5">
+                  <div class="flex items-center justify-between font-mono text-[11px]">
+                    <div class="flex items-center gap-1.5 font-bold text-slate-200 cursor-pointer btn-comm-profile" data-authorid="${c.authorId}">
+                      ${commAvatar}
+                      <span>${escapeHTML(c.authorName)}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <span class="text-slate-500">${formatDate(c.createdAt)}</span>
+                      ${currentUser && currentUser.id === c.authorId ? `<button class="btn-del-comm text-red-400 hover:underline" data-idx="${i}">excluir</button>` : ''}
+                    </div>
+                  </div>
+                  <p class="text-slate-300 selectable pl-5">${escapeHTML(c.text)}</p>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+
+      if (document.getElementById('btn-author-profile')) {
+        document.getElementById('btn-author-profile').onclick = () => openProfileModal(post.authorId);
+      }
+
+      document.querySelectorAll('.btn-comm-profile').forEach(b => {
+        b.onclick = () => openProfileModal(b.dataset.authorid);
+      });
+
+      if (document.getElementById('btn-copy-code')) {
+        document.getElementById('btn-copy-code').onclick = () => {
+          navigator.clipboard.writeText(post.content);
+          showToast('texto copiado');
+        };
+      }
+
+      if (document.getElementById('btn-download-file') && post.fileData) {
+        document.getElementById('btn-download-file').onclick = () => {
+          const a = document.createElement('a');
+          a.href = post.fileData;
+          a.download = post.fileName || 'arquivo';
+          a.click();
+          showToast('download iniciado');
+        };
+      }
+
+      if (document.getElementById('btn-delete-post')) {
+        document.getElementById('btn-delete-post').onclick = async () => {
+          if (confirm('deseja excluir esta publicação?')) {
+            await deleteDBPost(post.id);
+            closeModals();
+            showToast('publicação excluída');
+          }
+        };
+      }
+
+      document.querySelectorAll('.btn-vote-modal').forEach(b => {
+        b.onclick = async () => {
+          await handleVote(post.id, parseInt(b.dataset.vote));
+        };
+      });
+
+      const formComment = document.getElementById('form-comment');
+      if (formComment) {
+        formComment.onsubmit = async (e) => {
+          e.preventDefault();
+          if (!currentUser) {
+            currentUser = { id: 'guest_' + Math.random().toString(36).substring(2, 9), name: 'visitante', avatarUrl: '', isGuest: true };
+            localStorage.setItem('rda_current_user', JSON.stringify(currentUser));
+            updateAuthUI();
+          }
+
+          const inp = document.getElementById('comment-input');
+          const text = inp.value.trim();
+          if (!text) return;
+
+          const newComm = {
+            authorId: currentUser.id,
+            authorName: currentUser.name || 'visitante',
+            authorAvatar: currentUser.avatarUrl || '',
+            text: text,
+            createdAt: Date.now()
+          };
+
+          if (!post.comments) post.comments = [];
+          post.comments.push(newComm);
+
+          await saveDBPost(post);
+          renderViewPostModal(post);
+          showToast('comentário adicionado');
+        };
+      }
+
+      document.querySelectorAll('.btn-del-comm').forEach(b => {
+        b.onclick = async () => {
+          const idx = parseInt(b.dataset.idx);
+          post.comments.splice(idx, 1);
+          await saveDBPost(post);
+          renderViewPostModal(post);
+          showToast('comentário removido');
+        };
+      });
+    }
+
+    async function openProfileModal(userId) {
+      const modal = document.getElementById('modal-profile');
+      const container = document.getElementById('profile-modal-content');
+      
+      const users = await getDBUsers();
+      let userObj = users.find(u => u.id === userId);
+      
+      if (!userObj && currentUser && currentUser.id === userId) {
+        userObj = currentUser;
+      }
+      
+      if (!userObj) {
+        userObj = { id: userId, name: 'visitante', bio: '', avatarUrl: '' };
+      }
+
+      const isMe = currentUser && (currentUser.id === userId);
+      const userPosts = posts.filter(p => p.authorId === userId);
+
+      container.innerHTML = `
+        <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4 pb-4 border-b border-dark-500/80">
+          <div class="relative w-20 h-20 rounded-full bg-dark-600 border-2 border-dark-400 flex items-center justify-center overflow-hidden shrink-0 shadow-lg">
+            ${userObj.avatarUrl ? `
+              <img id="profile-avatar-img" src="${escapeHTML(userObj.avatarUrl)}" class="w-full h-full object-cover">
+            ` : `
+              <span id="profile-avatar-fallback" class="font-mono text-2xl font-bold text-white">${(userObj.name || 'V').charAt(0).toUpperCase()}</span>
+            `}
+          </div>
+
+          <div class="flex-1 text-center sm:text-left space-y-1">
+            <h2 class="text-xl font-bold text-white">${escapeHTML(userObj.name || 'visitante')}</h2>
+            <p class="font-mono text-xs text-slate-400">${userPosts.length} ${userPosts.length === 1 ? 'publicação' : 'publicações'}</p>
+            <p class="text-xs text-slate-300 pt-1 font-sans">${escapeHTML(userObj.bio || (isMe ? 'nenhuma bio adicionada ainda' : 'sem biografia.'))}</p>
+          </div>
+        </div>
+
+        ${isMe ? `
+          <div class="bg-dark-800/60 border border-dark-500/60 rounded-xl p-4 space-y-3">
+            <h3 class="font-mono text-xs font-bold text-white uppercase">editar meu perfil</h3>
+            
+            <div class="space-y-3">
+              <div>
+                <label class="block font-mono text-[10px] text-slate-400 uppercase mb-1">foto de perfil</label>
+                <label for="edit-avatar-input" class="flex items-center gap-3 bg-dark-900 border border-dark-400 rounded-lg p-2.5 cursor-pointer hover:border-dark-300 transition">
+                  <span class="btn-action-dark font-mono text-xs px-3 py-1.5 rounded shrink-0 pointer-events-none">Escolher foto</span>
+                  <span id="avatar-filename-label" class="font-mono text-xs text-slate-400 truncate">
+                    ${userObj.avatarUrl ? 'foto de perfil atual selecionada' : 'nenhum arquivo escolhido'}
+                  </span>
+                  <input type="file" id="edit-avatar-input" accept="image/*" class="hidden">
+                </label>
+              </div>
+
+              <div>
+                <label class="block font-mono text-[10px] text-slate-400 uppercase mb-1">biografia / sobre você</label>
+                <textarea id="edit-bio-input" rows="2" maxlength="200" placeholder="escreva algo sobre você..." class="w-full p-2.5 text-xs input-custom resize-none">${escapeHTML(userObj.bio || '')}</textarea>
+              </div>
+
+              <button id="btn-save-profile" class="btn-action-dark font-mono text-xs py-2.5 px-4 rounded-lg w-full">
+                salvar perfil
+              </button>
+            </div>
+          </div>
+        ` : ''}
+
+        <div class="space-y-3 pt-2">
+          <h3 class="font-mono text-xs font-bold text-white uppercase tracking-wider">publicações de ${escapeHTML(userObj.name)} (${userPosts.length})</h3>
+          
+          <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
+            ${userPosts.length === 0 ? `
+              <p class="font-mono text-xs text-slate-500 text-center py-4">nenhuma publicação criada por este usuário.</p>
+            ` : userPosts.map(p => `
+              <div class="bg-dark-800 border border-dark-500/70 rounded-lg p-3 flex items-center justify-between cursor-pointer hover:border-dark-400 transition btn-profile-post" data-id="${p.id}">
+                <div>
+                  <h4 class="font-bold text-xs text-white">${escapeHTML(p.title)}</h4>
+                  <span class="font-mono text-[10px] text-slate-400">${formatDate(p.createdAt)}</span>
+                </div>
+                <span class="font-mono text-[10px] text-slate-400">abrir ➔</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+
+      if (isMe) {
+        const fileInp = document.getElementById('edit-avatar-input');
+        fileInp.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            document.getElementById('avatar-filename-label').textContent = file.name;
+          }
+        });
+
+        document.getElementById('btn-save-profile').onclick = async () => {
+          const bioInp = document.getElementById('edit-bio-input');
+          
+          let newAvatar = userObj.avatarUrl || '';
+          if (fileInp.files[0]) {
+            newAvatar = await fileToBase64(fileInp.files[0]);
+          }
+
+          userObj.bio = bioInp.value.trim();
+          userObj.avatarUrl = newAvatar;
+
+          await saveDBUser(userObj);
+          currentUser = { ...currentUser, bio: userObj.bio, avatarUrl: userObj.avatarUrl };
+          localStorage.setItem('rda_current_user', JSON.stringify(currentUser));
+          
+          updateAuthUI();
+          openProfileModal(userId);
+          showToast('perfil atualizado com sucesso');
+        };
+      }
+
+      document.querySelectorAll('.btn-profile-post').forEach(b => {
+        b.onclick = () => {
+          const post = posts.find(x => x.id === b.dataset.id);
+          if (post) {
+            closeModals();
+            openViewPostModal(post);
+          }
+        };
+      });
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    window.addEventListener('firebase-ready', async () => {
+      initFirebaseSync();
+      updateAuthUI();
+
+      document.getElementById('post-thumb-file').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          selectedThumbBase64 = await fileToBase64(file);
+          document.getElementById('thumb-filename-label').textContent = file.name;
+          document.getElementById('thumb-preview-img').src = selectedThumbBase64;
+          document.getElementById('thumb-preview-box').classList.remove('hidden');
+        }
+      });
+
+      document.getElementById('post-attachment-file').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          selectedFileBase64 = await fileToBase64(file);
+          selectedFileName = file.name;
+          selectedFileSize = file.size;
+          document.getElementById('attachment-name-label').textContent = `${file.name} · ${formatSize(file.size)}`;
+        }
+      });
+
+      document.getElementById('form-publish').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        if (!currentUser) {
+          currentUser = { id: 'guest_' + Math.random().toString(36).substring(2, 9), name: 'visitante', avatarUrl: '', isGuest: true };
+          localStorage.setItem('rda_current_user', JSON.stringify(currentUser));
+          updateAuthUI();
+        }
+
+        const title = document.getElementById('post-title').value.trim();
+        const description = document.getElementById('post-desc').value.trim();
+        const content = document.getElementById('post-content').value.trim();
+
+        if (!title) return;
+        if (!content && !selectedFileBase64) {
+          showToast('adicione um texto ou selecione um arquivo');
+          return;
+        }
+
+        const newPost = {
+          id: 'post_' + Math.random().toString(36).substring(2, 11),
+          title,
+          description,
+          content,
+          thumbUrl: selectedThumbBase64 || '',
+          fileName: selectedFileName || '',
+          fileSize: selectedFileSize || 0,
+          fileData: selectedFileBase64 || '',
+          authorId: currentUser.id,
+          authorName: currentUser.name || 'visitante',
+          authorAvatar: currentUser.avatarUrl || '',
+          votes: {},
+          comments: [],
+          createdAt: Date.now()
+        };
+
+        await saveDBPost(newPost);
+        e.target.reset();
+        selectedThumbBase64 = null;
+        selectedFileBase64 = null;
+        selectedFileName = '';
+        selectedFileSize = 0;
+        document.getElementById('thumb-preview-box').classList.add('hidden');
+        document.getElementById('thumb-filename-label').textContent = 'nenhum arquivo escolhido';
+        document.getElementById('attachment-name-label').textContent = 'nenhum arquivo escolhido';
+        closeModals();
+        showToast('publicação adicionada ao yka');
+      });
+
+      document.getElementById('tab-login-btn').onclick = () => switchAuthTab('login');
+      document.getElementById('tab-register-btn').onclick = () => switchAuthTab('register');
+
+      document.getElementById('form-login').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('login-email').value.trim().toLowerCase();
+        const password = document.getElementById('login-password').value;
+
+        const users = await getDBUsers();
+        const userFound = users.find(u => u.email === email);
+
+        if (!userFound) {
+          showToast('nenhuma conta encontrada com este e-mail');
+          return;
+        }
+
+        if (userFound.password !== password) {
+          showToast('senha incorreta');
+          return;
+        }
+
+        currentUser = { id: userFound.id, name: userFound.name, email: userFound.email, bio: userFound.bio || '', avatarUrl: userFound.avatarUrl || '', isGuest: false };
+        localStorage.setItem('rda_current_user', JSON.stringify(currentUser));
+        updateAuthUI();
+        closeModals();
+        document.getElementById('form-login').reset();
+        showToast(`bem-vindo de volta ${userFound.name}`);
+      });
+
+      document.getElementById('form-register').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('reg-name').value.trim();
+        const email = document.getElementById('reg-email').value.trim().toLowerCase();
+        const password = document.getElementById('reg-password').value;
+
+        const users = await getDBUsers();
+
+        const emailExists = users.some(u => u.email === email);
+        if (emailExists) {
+          showToast('este e-mail já está em uso');
+          return;
+        }
+
+        const newUser = {
+          id: 'usr_' + Math.random().toString(36).substring(2, 11),
+          name: name,
+          email: email,
+          password: password,
+          bio: '',
+          avatarUrl: '',
+          createdAt: Date.now()
+        };
+
+        await saveDBUser(newUser);
+
+        currentUser = { id: newUser.id, name: newUser.name, email: newUser.email, bio: '', avatarUrl: '', isGuest: false };
+        localStorage.setItem('rda_current_user', JSON.stringify(currentUser));
+        updateAuthUI();
+        closeModals();
+        document.getElementById('form-register').reset();
+        showToast('conta criada com sucesso');
+      });
+
+      document.getElementById('btn-guest-login').onclick = () => {
+        currentUser = { id: 'guest_' + Math.random().toString(36).substring(2, 9), name: 'visitante', bio: '', avatarUrl: '', isGuest: true };
+        localStorage.setItem('rda_current_user', JSON.stringify(currentUser));
+        updateAuthUI();
+        closeModals();
+        showToast('modo visitante ativo');
+      };
+
+      document.getElementById('search-input').addEventListener('input', (e) => {
+        searchQuery = e.target.value;
+        renderPosts();
+      });
+
+      document.querySelectorAll('#filter-chips .chip-btn').forEach(btn => {
+        btn.onclick = () => {
+          document.querySelectorAll('#filter-chips .chip-btn').forEach(b => {
+            b.classList.remove('active', 'bg-dark-600', 'text-white', 'font-bold');
+            b.classList.add('bg-dark-800', 'text-slate-400');
+          });
+          btn.classList.add('active', 'bg-dark-600', 'text-white', 'font-bold');
+          btn.classList.remove('text-slate-400', 'bg-dark-800');
+          currentFilter = btn.dataset.filter;
+          renderPosts();
+        };
+      });
+
+      document.getElementById('sort-select').addEventListener('change', (e) => {
+        currentSort = e.target.value;
+        renderPosts();
+      });
+
+      document.getElementById('btn-open-create').onclick = () => {
+        document.getElementById('modal-create').classList.remove('hidden');
+        document.getElementById('modal-create').classList.add('flex');
+      };
+
+      document.querySelectorAll('.modal-close').forEach(b => b.onclick = closeModals);
+      document.querySelectorAll('#modal-create, #modal-view, #modal-auth, #modal-profile').forEach(m => {
+        m.onclick = (e) => { if (e.target === m) closeModals(); };
+      });
+    });
+  </script>
+</body>
+</html>
